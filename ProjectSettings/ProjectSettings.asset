@@ -687,8 +687,8 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: MKM_Project2
-  metroPackageVersion: 
+  metroPackageName: MKMProject2
+  metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
@@ -696,7 +696,7 @@ PlayerSettings:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: MKM_Project2
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName: MKM_Project2
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0
