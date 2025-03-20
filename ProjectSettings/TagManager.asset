@@ -8,6 +8,7 @@ TagManager:
   - ConcaveLens
   - ConvexLens
   - Obstacle
+  - Laser
   layers:
   - Default
   - TransparentFX

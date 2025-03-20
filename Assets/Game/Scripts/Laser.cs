@@ -1,7 +1,9 @@
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
-public class Laser :MonoBehaviour
+using Unity.VisualScripting;
+
+public class Laser : MonoBehaviour
 {
     private List<Vector3> PointList = new List<Vector3>();
 
@@ -10,8 +12,11 @@ public class Laser :MonoBehaviour
 
     public int MaxReflections = 10;
     public float MaxRayLength = 500;
-    
+
     private RaycastHit2D hit;
+    
+    public LayerMask ignoreLayer;
+
     void Start()
     {
         RayRender.startWidth = 0.1f;
@@ -21,7 +26,7 @@ public class Laser :MonoBehaviour
 
     void Update()
     {
-        RayRender.widthMultiplier = 1f; // œÂ‰ÓÚ‚‡˘‡ÂÏ ÒÛÊÂÌËÂ
+        RayRender.widthMultiplier = 1f;
 
         PointList.Clear();
         PointList.Add(StartPoint.transform.position);
@@ -36,22 +41,36 @@ public class Laser :MonoBehaviour
         }
     }
 
-
     private RaycastHit2D[] hits = new RaycastHit2D[1];
 
     private void GetRayPath(Vector2 startPosition, Vector2 direction, int depth = 0)
     {
         if (depth > MaxReflections) return;
 
-        hit = Physics2D.Raycast(startPosition, direction);
-        if (hit.collider != null)
+        // –ò—Å–ø–æ–ª—å–∑—É–µ–º LayerMask –¥–ª—è –∏—Å–∫–ª—é—á–µ–Ω–∏—è —Å–ª–æ—è
+        hit = Physics2D.Raycast(startPosition, direction, MaxRayLength, ~ignoreLayer);
+
+        if (hit.collider)
         {
             PointList.Add(hit.point);
 
             if (hit.collider.CompareTag("Mirror"))
             {
                 Vector2 newDirection = (direction - 2 * (Vector2.Dot(direction, hit.normal)) * hit.normal).normalized;
-                GetRayPath(hit.point + newDirection * 0.01f, newDirection, depth + 1);
+                GetRayPath(hit.point + newDirection, newDirection, depth + 1);
+            }
+            else if (hit.collider.CompareTag("ConvexLens"))
+            {
+                ConvexLens lens = hit.collider.GetComponent<ConvexLens>();
+                float d = ((Vector3)hit.point - lens.transform.position).magnitude;
+                
+                float delta = d / lens.Focus;
+                
+                Vector2 focusDirection = (lens.FocusPoint - hit.point).normalized;
+                
+                Vector2 newDirection = Quaternion.Euler(0, 0, delta * Mathf.Rad2Deg) * focusDirection;
+                
+                GetRayPath(hit.point + newDirection, newDirection, depth + 1);
             }
         }
         else
@@ -59,6 +78,4 @@ public class Laser :MonoBehaviour
             PointList.Add(startPosition + direction * MaxRayLength);
         }
     }
-
 }
-
