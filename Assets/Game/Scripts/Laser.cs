@@ -40,14 +40,11 @@ public class Laser : MonoBehaviour
             RayRender.SetPositions(PointList.ToArray());
         }
     }
-
-    private RaycastHit2D[] hits = new RaycastHit2D[1];
-
+    
     private void GetRayPath(Vector2 startPosition, Vector2 direction, int depth = 0)
     {
         if (depth > MaxReflections) return;
-
-        // Используем LayerMask для исключения слоя
+        
         hit = Physics2D.Raycast(startPosition, direction, MaxRayLength, ~ignoreLayer);
 
         if (hit.collider)
@@ -59,9 +56,9 @@ public class Laser : MonoBehaviour
                 Vector2 newDirection = (direction - 2 * (Vector2.Dot(direction, hit.normal)) * hit.normal).normalized;
                 GetRayPath(hit.point + newDirection, newDirection, depth + 1);
             }
-            else if (hit.collider.CompareTag("ConvexLens"))
+            else if (hit.collider.CompareTag("Lens"))
             {
-                ConvexLens lens = hit.collider.GetComponent<ConvexLens>();
+                Lens lens = hit.collider.GetComponent<Lens>();
                 float d = ((Vector3)hit.point - lens.transform.position).magnitude;
                 
                 float delta = d / lens.Focus;
