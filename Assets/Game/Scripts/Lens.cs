@@ -4,7 +4,7 @@ public class Lens : MonoBehaviour
 {
     public float R1 = 10;
     public float R2 = -15;
-    public float RefractiveIndex = 0.8f;
+    public float RefractiveIndex = 1.8f;
     public float Focus;
 
     [SerializeField] Sprite biconvex;
