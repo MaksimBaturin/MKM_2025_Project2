@@ -58,8 +58,17 @@ public class Laser : MonoBehaviour
             }
             else if (hit.collider.CompareTag("Lens"))
             {
+                Vector3 hitSide = hit.transform.InverseTransformDirection(hit.normal).normalized;
                 Lens lens = hit.collider.GetComponent<Lens>();
-                CalculateLensReflection(direction, depth, lens);
+                if (hitSide.x < 0)
+                {
+                    CalculateLensReflection(direction, depth, lens, lens.Focus, lens.FocusPoint);
+                }
+                else
+                {
+                    CalculateLensReflection(direction, depth, lens, lens.SecondaryFocus, lens.SecondaryFocusPoint);
+                }
+
             }
         }
         else
@@ -68,19 +77,19 @@ public class Laser : MonoBehaviour
         } 
     }
 
-    private void CalculateLensReflection(Vector2 direction, int depth, Lens lens)
+    private void CalculateLensReflection(Vector2 direction, int depth, Lens lens, float focus, Vector2 focusPoint)
     {
         Vector2 normal = hit.normal;
 
-        if (Mathf.Abs(lens.Focus) > 0.1f)
+        if (Mathf.Abs(focus) > 0.1f)
         {
-            Vector2 opticAxis = (lens.FocusPoint - (Vector2)lens.transform.position).normalized;
+            Vector2 opticAxis = (focusPoint - (Vector2)lens.transform.position).normalized;
 
             float distanceFromOpticAxis = Vector2.Dot(direction.normalized, new Vector2(-opticAxis.y, opticAxis.x));
-            float focusPlaneOffset = distanceFromOpticAxis * lens.Focus;
+            float focusPlaneOffset = distanceFromOpticAxis * focus;
             Vector2 focusPlanePoint;
 
-            Vector2 ray1Start = lens.FocusPoint;
+            Vector2 ray1Start = focusPoint;
             Vector2 ray1Direction = Vector2.up;
             Vector2 ray2Start = lens.transform.position;
             Vector2 ray2Direction = direction;
@@ -91,11 +100,11 @@ public class Laser : MonoBehaviour
             }
             else
             {
-                focusPlanePoint = lens.FocusPoint + focusPlaneOffset * new Vector2(-opticAxis.y, opticAxis.x);
+                focusPlanePoint = focusPoint + focusPlaneOffset * new Vector2(-opticAxis.y, opticAxis.x);
             }
 
-            Debug.DrawRay(lens.FocusPoint, Vector2.up * 10, Color.magenta);
-            Debug.DrawRay(lens.FocusPoint, -Vector2.up * 10, Color.magenta);
+            Debug.DrawRay(focusPoint, Vector2.up * 10, Color.magenta);
+            Debug.DrawRay(focusPoint, -Vector2.up * 10, Color.magenta);
             if (lens.Focus > 0)
             {
                 Debug.DrawRay(lens.transform.position, direction * 500, Color.green);
@@ -110,7 +119,7 @@ public class Laser : MonoBehaviour
                 Vector2 focalPlaneNormal = new Vector2(-opticAxis.y, opticAxis.x);
                 Vector2 secondaryFocusPoint;
                 
-                if (TryGetRayIntersection(lens.transform.position, direction, lens.FocusPoint, focalPlaneNormal, out secondaryFocusPoint))
+                if (TryGetRayIntersection(lens.transform.position, direction, focusPoint, focalPlaneNormal, out secondaryFocusPoint))
                 {
                     Vector2 newDirection = (hit.point - secondaryFocusPoint).normalized;
                     Debug.DrawRay(lens.transform.position, -direction * 500, Color.green);

@@ -2,20 +2,16 @@ using UnityEngine;
 
 public class Lens : MonoBehaviour
 {
-    public float R1 = 10;
-    public float R2 = -15;
     public float RefractiveIndex = 1.8f;
-    public float Focus;
+    public float Focus = 15;
+    public float SecondaryFocus;
 
     [SerializeField] Sprite biconvex;
-    [SerializeField] Sprite flatConvex;
-    [SerializeField] Sprite convexConcave1;
     
     [SerializeField] Sprite biconcave;
-    [SerializeField] Sprite flatConcave;
-    [SerializeField] Sprite convexConcave2;
-
+    
     public Vector2 FocusPoint;
+    public Vector2 SecondaryFocusPoint;
 
     [SerializeField] SpriteRenderer spriteRenderer;
 
@@ -31,13 +27,8 @@ public class Lens : MonoBehaviour
 
     private void UpdateLens()
     {
-        if (R1 == 0 || R2 == 0)
-        {
-            Debug.LogError("Радиусы кривизны не могут быть нулевыми.");
-            return;
-        }
         
-        Focus = 1 / ((RefractiveIndex - 1) * (1 / R1 - 1 / R2));
+        SecondaryFocus = -Focus;
         
         UpdateLensSprite();
         
@@ -46,29 +37,13 @@ public class Lens : MonoBehaviour
 
     private void UpdateLensSprite()
     {
-        if (R1 > 0 && R2 > 0)
+        if (Focus > 0)
         {
             spriteRenderer.sprite = biconvex;
         }
-        else if (R1 > 0 && R2 == 0)
-        {
-            spriteRenderer.sprite = flatConvex;
-        }
-        else if (R1 > 0 && R2 < 0)
-        {
-            spriteRenderer.sprite = convexConcave1;
-        }
-        else if (R1 < 0 && R2 < 0)
+        else if (Focus < 0)
         {
             spriteRenderer.sprite = biconcave;
-        }
-        else if (R1 == 0 && R2 < 0)
-        {
-            spriteRenderer.sprite = flatConcave;
-        }
-        else if (R1 < 0 && R2 > 0)
-        {
-            spriteRenderer.sprite = convexConcave2;
         }
     }
 
@@ -80,6 +55,7 @@ public class Lens : MonoBehaviour
         float offsetY = Focus * Mathf.Sin(angleInRadians);
         
         FocusPoint = new Vector2(transform.position.x + offsetX, transform.position.y + offsetY);
+        SecondaryFocusPoint = new Vector2(transform.position.x - offsetX, transform.position.y - offsetY);
     }
     
     private void OnDrawGizmosSelected()

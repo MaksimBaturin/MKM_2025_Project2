@@ -326,7 +326,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 10.01
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -660,17 +660,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f3a990c7000e4c4faaf44c94a78d9bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  R1: 10
-  R2: 5
   RefractiveIndex: 1.8
-  Focus: 0
+  Focus: 3
+  SecondaryFocus: 0
   biconvex: {fileID: -140821870225735800, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
-  flatConvex: {fileID: 3019563130393141018, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
-  convexConcave1: {fileID: -4390417751424523361, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
   biconcave: {fileID: -2120744519780702847, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
-  flatConcave: {fileID: -6204794188717469550, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
-  convexConcave2: {fileID: -2407148779132460922, guid: 8469fbe962d63bc4c8b0b7477a69cbc7, type: 3}
   FocusPoint: {x: 0, y: 0}
+  SecondaryFocusPoint: {x: 0, y: 0}
   spriteRenderer: {fileID: 927905076}
 --- !u!68 &1752634654
 EdgeCollider2D:
@@ -812,6 +808,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1858696142}
   - component: {fileID: 1858696143}
+  - component: {fileID: 1858696144}
+  - component: {fileID: 1858696145}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -847,6 +845,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RotationSpeed: 3
+--- !u!114 &1858696144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858696141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e09494540872fb4aa51826de8032fac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ZoomSpeed: 1
+  camera: {fileID: 519420031}
+--- !u!114 &1858696145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1858696141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a424d091ed1577d4ca5316790d8636b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragSpeed: 2
 --- !u!1 &1937206349
 GameObject:
   m_ObjectHideFlags: 0
