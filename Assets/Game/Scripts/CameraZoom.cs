@@ -8,7 +8,7 @@ public class CameraZoom : MonoBehaviour
     void Update()
     {
         mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        if (Input.mouseScrollDelta.y != 0)
+        if (Input.mouseScrollDelta.y != 0 && Input.GetKey(KeyCode.LeftControl))
         {
             if (!Physics2D.OverlapPoint(mousePosition))
             {

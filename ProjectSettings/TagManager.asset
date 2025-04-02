@@ -5,10 +5,10 @@ TagManager:
   serializedVersion: 3
   tags:
   - Mirror
-  - ConvexLens
   - Obstacle
   - Laser
   - Lens
+  - LensContainer
   layers:
   - Default
   - TransparentFX

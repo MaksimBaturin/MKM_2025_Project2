@@ -1,10 +1,18 @@
+using System;
 using UnityEngine;
 
 public class CameraMove : MonoBehaviour
 {
-    [SerializeField] private float dragSpeed = 2f;
+    [SerializeField] private float dragSpeedX;
+    [SerializeField] private float dragSpeedY;
     private Vector3 dragOrigin;
     private bool isDragging;
+
+    private void Start()
+    {
+        dragSpeedX = Screen.width / 100f;
+        dragSpeedY = Screen.height / 100f;
+    }
 
     void Update()
     {
@@ -27,7 +35,7 @@ public class CameraMove : MonoBehaviour
         if (isDragging && Input.GetMouseButton(0))
         {
             Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - dragOrigin);
-            Vector3 move = new Vector3(-pos.x * dragSpeed, -pos.y * dragSpeed, 0);
+            Vector3 move = new Vector3(-pos.x * dragSpeedX, -pos.y * dragSpeedY, 0);
             Camera.main.transform.Translate(move, Space.World);
             dragOrigin = Input.mousePosition;
         }
