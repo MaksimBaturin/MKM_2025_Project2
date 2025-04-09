@@ -14,6 +14,7 @@ public class Lens : MonoBehaviour
     public Vector2 SecondaryFocusPoint;
 
     [SerializeField] SpriteRenderer spriteRenderer;
+    
 
     private void Start()
     {

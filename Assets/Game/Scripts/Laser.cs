@@ -78,92 +78,102 @@ public class Laser : MonoBehaviour
     }
 
     private void CalculateLensReflection(Vector2 direction, int depth, Lens lens, float focus, Vector2 focusPoint)
+{
+    Vector2 normal = hit.normal;
+
+    if (Mathf.Abs(focus) > 0.1f)
     {
-        Vector2 normal = hit.normal;
+        // Оптическая ось линзы (учитывает поворот)
+        Vector2 opticAxis = (focusPoint - (Vector2)lens.transform.position).normalized;
+        
+        // Перпендикуляр к оптической оси (фокальная плоскость вращается вместе с линзой)
+        Vector2 focalPlaneNormal = new Vector2(-opticAxis.y, opticAxis.x);
 
-        if (Mathf.Abs(focus) > 0.1f)
+        // Расстояние от оптической оси до луча (учитывает поворот линзы)
+        float distanceFromOpticAxis = Vector2.Dot(direction.normalized, focalPlaneNormal);
+        float focusPlaneOffset = distanceFromOpticAxis * focus;
+        Vector2 focusPlanePoint;
+
+        // Луч 1: вертикальный луч (для визуализации)
+        Vector2 ray1Start = focusPoint;
+        Vector2 ray1Direction = focalPlaneNormal; // Теперь плоскость вращается с линзой
+        
+        // Луч 2: исходный луч (от линзы)
+        Vector2 ray2Start = lens.transform.position;
+        Vector2 ray2Direction = direction;
+
+        if (TryGetRayIntersection(ray1Start, ray1Direction, ray2Start, ray2Direction, out Vector2 intersection))
         {
-            Vector2 opticAxis = (focusPoint - (Vector2)lens.transform.position).normalized;
+            focusPlanePoint = intersection;
+        }
+        else
+        {
+            focusPlanePoint = focusPoint + focusPlaneOffset * focalPlaneNormal;
+        }
 
-            float distanceFromOpticAxis = Vector2.Dot(direction.normalized, new Vector2(-opticAxis.y, opticAxis.x));
-            float focusPlaneOffset = distanceFromOpticAxis * focus;
-            Vector2 focusPlanePoint;
 
-            Vector2 ray1Start = focusPoint;
-            Vector2 ray1Direction = Vector2.up;
-            Vector2 ray2Start = lens.transform.position;
-            Vector2 ray2Direction = direction;
+        Debug.DrawRay(focusPoint, focalPlaneNormal * 10, Color.magenta);
+        Debug.DrawRay(focusPoint, -focalPlaneNormal * 10, Color.magenta);
+        Debug.DrawRay(lens.transform.position, opticAxis* 50, Color.magenta);
+        
 
-            if (TryGetRayIntersection(ray1Start, ray1Direction, ray2Start, ray2Direction, out Vector2 intersection))
+        if (lens.Focus > 0) // Собирающая линза
+        {
+            Debug.DrawRay(lens.transform.position, direction * 500, Color.green);
+            Vector2 newDirection = (focusPlanePoint - hit.point).normalized;
+            GetRayPath(hit.point + newDirection, newDirection, depth + 1);
+        }
+        else // Рассеивающая линза
+        {
+            Vector2 secondaryOpticAxis = direction.normalized;
+            Vector2 secondaryFocusPoint;
+
+            if (TryGetRayIntersection(lens.transform.position, direction, focusPoint, focalPlaneNormal, out secondaryFocusPoint))
             {
-                focusPlanePoint = intersection;
-            }
-            else
-            {
-                focusPlanePoint = focusPoint + focusPlaneOffset * new Vector2(-opticAxis.y, opticAxis.x);
-            }
-
-            Debug.DrawRay(focusPoint, Vector2.up * 10, Color.magenta);
-            Debug.DrawRay(focusPoint, -Vector2.up * 10, Color.magenta);
-            if (lens.Focus > 0)
-            {
-                Debug.DrawRay(lens.transform.position, direction * 500, Color.green);
-                Vector2 newDirection = (focusPlanePoint - hit.point).normalized;
+                Vector2 newDirection = (hit.point - secondaryFocusPoint).normalized;
+                Debug.DrawRay(lens.transform.position, -direction * 500, Color.green);
+                Debug.DrawRay(secondaryFocusPoint, newDirection * 500, Color.green);
                 GetRayPath(hit.point + newDirection, newDirection, depth + 1);
             }
             else
             {
-                Vector2 secondaryOpticAxis = direction.normalized;
-                
-                
-                Vector2 focalPlaneNormal = new Vector2(-opticAxis.y, opticAxis.x);
-                Vector2 secondaryFocusPoint;
-                
-                if (TryGetRayIntersection(lens.transform.position, direction, focusPoint, focalPlaneNormal, out secondaryFocusPoint))
-                {
-                    Vector2 newDirection = (hit.point - secondaryFocusPoint).normalized;
-                    Debug.DrawRay(lens.transform.position, -direction * 500, Color.green);
-                    Debug.DrawRay(secondaryFocusPoint, newDirection * 500, Color.green);
-                    GetRayPath(hit.point + newDirection, newDirection, depth + 1);
-                }
-                else
-                {
-                    Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
-                    GetRayPath(hit.point + newDirection, newDirection, depth + 1);
-                }
-            }
-        }
-        else
-        {
-            float n1 = 1.0f;
-            float n2 = lens.RefractiveIndex;
-
-            if (Vector2.Dot(direction, normal) > 0)
-            {
-                normal = -normal;
-                float temp = n1;
-                n1 = n2;
-                n2 = temp;
-            }
-
-            float n = n1 / n2;
-            float cosI = -Vector2.Dot(normal, direction);
-            float sinT2 = n * n * (1.0f - cosI * cosI);
-
-            if (sinT2 > 1.0f)
-            {
                 Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
-                GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
-            }
-            else
-            {
-                float cosT = Mathf.Sqrt(1.0f - sinT2);
-                Vector2 newDirection = n * direction + (n * cosI - cosT) * normal;
-                newDirection.Normalize();
-                GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+                GetRayPath(hit.point + newDirection, newDirection, depth + 1);
             }
         }
     }
+    else
+    {
+        // Преломление (оставляем без изменений)
+        float n1 = 1.0f;
+        float n2 = lens.RefractiveIndex;
+
+        if (Vector2.Dot(direction, normal) > 0)
+        {
+            normal = -normal;
+            float temp = n1;
+            n1 = n2;
+            n2 = temp;
+        }
+
+        float n = n1 / n2;
+        float cosI = -Vector2.Dot(normal, direction);
+        float sinT2 = n * n * (1.0f - cosI * cosI);
+
+        if (sinT2 > 1.0f)
+        {
+            Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
+            GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+        }
+        else
+        {
+            float cosT = Mathf.Sqrt(1.0f - sinT2);
+            Vector2 newDirection = n * direction + (n * cosI - cosT) * normal;
+            newDirection.Normalize();
+            GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+        }
+    }
+}
 
     // Метод для поиска пересечения двух лучей
     private bool TryGetRayIntersection(Vector2 p1, Vector2 d1, Vector2 p2, Vector2 d2, out Vector2 intersection)

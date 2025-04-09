@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-
+using UnityEngine.EventSystems;
 public class CameraMove : MonoBehaviour
 {
     [SerializeField] private float dragSpeedX;
@@ -18,6 +18,10 @@ public class CameraMove : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             if (!Physics2D.OverlapPoint(mousePos))
             {
