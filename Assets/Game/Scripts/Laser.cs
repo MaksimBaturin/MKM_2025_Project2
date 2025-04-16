@@ -6,9 +6,11 @@ using Unity.VisualScripting;
 public class Laser : MonoBehaviour
 {
     private List<Vector3> PointList = new List<Vector3>();
+    private List<LineRenderer> debugRenderers = new List<LineRenderer>();
 
     [SerializeField] private LineRenderer RayRender;
     [SerializeField] private GameObject StartPoint;
+    [SerializeField] private GameObject DebugRendererPrefab; // Префаб с LineRenderer для отладки
 
     public int MaxReflections = 10;
     public float MaxRayLength = 500;
@@ -26,6 +28,9 @@ public class Laser : MonoBehaviour
 
     void Update()
     {
+        // Очищаем предыдущие отладочные рендереры
+        ClearDebugRenderers();
+
         RayRender.widthMultiplier = 1f;
 
         PointList.Clear();
@@ -40,7 +45,52 @@ public class Laser : MonoBehaviour
             RayRender.SetPositions(PointList.ToArray());
         }
     }
-    
+
+    private void ClearDebugRenderers()
+    {
+        foreach (var renderer in debugRenderers)
+        {
+            if (renderer != null)
+            {
+                Destroy(renderer.gameObject);
+            }
+        }
+        debugRenderers.Clear();
+    }
+
+    private LineRenderer CreateDebugRenderer(Color color)
+    {
+        if (DebugRendererPrefab == null)
+        {
+            GameObject debugObj = new GameObject("DebugRenderer");
+            LineRenderer lr = debugObj.AddComponent<LineRenderer>();
+            lr.startWidth = 0.05f;
+            lr.endWidth = 0.05f;
+            lr.material = new Material(Shader.Find("Sprites/Default"));
+            lr.startColor = color;
+            lr.endColor = color;
+            debugRenderers.Add(lr);
+            return lr;
+        }
+        else
+        {
+            GameObject debugObj = Instantiate(DebugRendererPrefab);
+            LineRenderer lr = debugObj.GetComponent<LineRenderer>();
+            lr.startColor = color;
+            lr.endColor = color;
+            debugRenderers.Add(lr);
+            return lr;
+        }
+    }
+
+    private void DrawDebugRay(Vector2 start, Vector2 direction, float length, Color color)
+    {
+        LineRenderer lr = CreateDebugRenderer(color);
+        lr.positionCount = 2;
+        lr.SetPosition(0, start);
+        lr.SetPosition(1, start + direction * length);
+    }
+
     private void GetRayPath(Vector2 startPosition, Vector2 direction, int depth = 0)
     {
         if (depth > MaxReflections) return;
@@ -68,7 +118,6 @@ public class Laser : MonoBehaviour
                 {
                     CalculateLensReflection(direction, depth, lens, lens.SecondaryFocus, lens.SecondaryFocusPoint);
                 }
-
             }
         }
         else
@@ -78,104 +127,98 @@ public class Laser : MonoBehaviour
     }
 
     private void CalculateLensReflection(Vector2 direction, int depth, Lens lens, float focus, Vector2 focusPoint)
-{
-    Vector2 normal = hit.normal;
-
-    if (Mathf.Abs(focus) > 0.1f)
     {
-        // Оптическая ось линзы (учитывает поворот)
-        Vector2 opticAxis = (focusPoint - (Vector2)lens.transform.position).normalized;
-        
-        // Перпендикуляр к оптической оси (фокальная плоскость вращается вместе с линзой)
-        Vector2 focalPlaneNormal = new Vector2(-opticAxis.y, opticAxis.x);
+        Vector2 normal = hit.normal;
 
-        // Расстояние от оптической оси до луча (учитывает поворот линзы)
-        float distanceFromOpticAxis = Vector2.Dot(direction.normalized, focalPlaneNormal);
-        float focusPlaneOffset = distanceFromOpticAxis * focus;
-        Vector2 focusPlanePoint;
-
-        // Луч 1: вертикальный луч (для визуализации)
-        Vector2 ray1Start = focusPoint;
-        Vector2 ray1Direction = focalPlaneNormal; // Теперь плоскость вращается с линзой
-        
-        // Луч 2: исходный луч (от линзы)
-        Vector2 ray2Start = lens.transform.position;
-        Vector2 ray2Direction = direction;
-
-        if (TryGetRayIntersection(ray1Start, ray1Direction, ray2Start, ray2Direction, out Vector2 intersection))
+        if (Mathf.Abs(focus) > 0.1f)
         {
-            focusPlanePoint = intersection;
-        }
-        else
-        {
-            focusPlanePoint = focusPoint + focusPlaneOffset * focalPlaneNormal;
-        }
+            Vector2 opticAxis = (focusPoint - (Vector2)lens.transform.position).normalized;
+            Vector2 focalPlaneNormal = new Vector2(-opticAxis.y, opticAxis.x);
+            
+            float focusDistance = Vector2.Distance(lens.transform.position, focusPoint);
+            float debugRayLength = focusDistance * 1.5f; 
 
+            float distanceFromOpticAxis = Vector2.Dot(direction.normalized, focalPlaneNormal);
+            float focusPlaneOffset = distanceFromOpticAxis * focus;
+            Vector2 focusPlanePoint;
 
-        Debug.DrawRay(focusPoint, focalPlaneNormal * 10, Color.magenta);
-        Debug.DrawRay(focusPoint, -focalPlaneNormal * 10, Color.magenta);
-        Debug.DrawRay(lens.transform.position, opticAxis* 50, Color.magenta);
-        
+            Vector2 ray1Start = focusPoint;
+            Vector2 ray1Direction = focalPlaneNormal;
+            
+            Vector2 ray2Start = lens.transform.position;
+            Vector2 ray2Direction = direction;
 
-        if (lens.Focus > 0) // Собирающая линза
-        {
-            Debug.DrawRay(lens.transform.position, direction * 500, Color.green);
-            Vector2 newDirection = (focusPlanePoint - hit.point).normalized;
-            GetRayPath(hit.point + newDirection, newDirection, depth + 1);
-        }
-        else // Рассеивающая линза
-        {
-            Vector2 secondaryOpticAxis = direction.normalized;
-            Vector2 secondaryFocusPoint;
-
-            if (TryGetRayIntersection(lens.transform.position, direction, focusPoint, focalPlaneNormal, out secondaryFocusPoint))
+            if (TryGetRayIntersection(ray1Start, ray1Direction, ray2Start, ray2Direction, out Vector2 intersection))
             {
-                Vector2 newDirection = (hit.point - secondaryFocusPoint).normalized;
-                Debug.DrawRay(lens.transform.position, -direction * 500, Color.green);
-                Debug.DrawRay(secondaryFocusPoint, newDirection * 500, Color.green);
-                GetRayPath(hit.point + newDirection, newDirection, depth + 1);
+                focusPlanePoint = intersection;
             }
             else
             {
-                Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
+                focusPlanePoint = focusPoint + focusPlaneOffset * focalPlaneNormal;
+            }
+
+            // Рисуем отладочные лучи с рассчитанной длиной
+            DrawDebugRay(focusPoint, focalPlaneNormal, 10f, Color.magenta); // Фокальная плоскость
+            DrawDebugRay(focusPoint, -focalPlaneNormal, 10f, Color.magenta);
+            DrawDebugRay(lens.transform.position, opticAxis, focusDistance * 1.5f, Color.magenta); // Главная оптическая ось
+
+            if (lens.Focus > 0) // Собирающая линза
+            {
+                DrawDebugRay(lens.transform.position, direction, debugRayLength, Color.green);
+                Vector2 newDirection = (focusPlanePoint - hit.point).normalized;
                 GetRayPath(hit.point + newDirection, newDirection, depth + 1);
             }
-        }
-    }
-    else
-    {
-        // Преломление (оставляем без изменений)
-        float n1 = 1.0f;
-        float n2 = lens.RefractiveIndex;
+            else // Рассеивающая линза
+            {
+                Vector2 secondaryOpticAxis = direction.normalized;
+                Vector2 secondaryFocusPoint;
 
-        if (Vector2.Dot(direction, normal) > 0)
-        {
-            normal = -normal;
-            float temp = n1;
-            n1 = n2;
-            n2 = temp;
-        }
-
-        float n = n1 / n2;
-        float cosI = -Vector2.Dot(normal, direction);
-        float sinT2 = n * n * (1.0f - cosI * cosI);
-
-        if (sinT2 > 1.0f)
-        {
-            Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
-            GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+                if (TryGetRayIntersection(lens.transform.position, direction, focusPoint, focalPlaneNormal, out secondaryFocusPoint))
+                {
+                    Vector2 newDirection = (hit.point - secondaryFocusPoint).normalized;
+                    DrawDebugRay(lens.transform.position, -direction, debugRayLength, Color.green);
+                    DrawDebugRay(secondaryFocusPoint, newDirection, debugRayLength, Color.green);
+                    GetRayPath(hit.point + newDirection, newDirection, depth + 1);
+                }
+                else
+                {
+                    Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
+                    GetRayPath(hit.point + newDirection, newDirection, depth + 1);
+                }
+            }
         }
         else
         {
-            float cosT = Mathf.Sqrt(1.0f - sinT2);
-            Vector2 newDirection = n * direction + (n * cosI - cosT) * normal;
-            newDirection.Normalize();
-            GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+            float n1 = 1.0f;
+            float n2 = lens.RefractiveIndex;
+
+            if (Vector2.Dot(direction, normal) > 0)
+            {
+                normal = -normal;
+                float temp = n1;
+                n1 = n2;
+                n2 = temp;
+            }
+
+            float n = n1 / n2;
+            float cosI = -Vector2.Dot(normal, direction);
+            float sinT2 = n * n * (1.0f - cosI * cosI);
+
+            if (sinT2 > 1.0f)
+            {
+                Vector2 newDirection = Vector2.Reflect(direction, normal).normalized;
+                GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+            }
+            else
+            {
+                float cosT = Mathf.Sqrt(1.0f - sinT2);
+                Vector2 newDirection = n * direction + (n * cosI - cosT) * normal;
+                newDirection.Normalize();
+                GetRayPath(hit.point + newDirection * 0.1f, newDirection, depth + 1);
+            }
         }
     }
-}
 
-    // Метод для поиска пересечения двух лучей
     private bool TryGetRayIntersection(Vector2 p1, Vector2 d1, Vector2 p2, Vector2 d2, out Vector2 intersection)
     {
         float a1 = d1.y;
@@ -191,11 +234,10 @@ public class Laser : MonoBehaviour
         if (Mathf.Abs(det) < 1e-6)
         {
             intersection = Vector2.zero;
-            return false; // Линии параллельны
+            return false;
         }
 
         intersection = new Vector2((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
         return true;
     }
-    
 }

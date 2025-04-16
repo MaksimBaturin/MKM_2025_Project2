@@ -15,7 +15,8 @@ public class FocusEditor : MonoBehaviour
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
-        mainCamera = Camera.main;
+        //mainCamera = Camera.main;
+        mainCamera = GameObject.FindGameObjectWithTag("UICamera").GetComponent<Camera>();
         
         if (target != null)
         {
