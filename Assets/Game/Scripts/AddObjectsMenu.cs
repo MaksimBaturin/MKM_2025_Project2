@@ -14,7 +14,8 @@ public class AddObjectsMenu : MonoBehaviour
     void Start()
     {
         rectTransform = GetComponent<RectTransform>();
-        mainCamera = Camera.main;
+        //mainCamera = Camera.main;
+        mainCamera = GameObject.FindGameObjectWithTag("UICamera").GetComponent<Camera>();
         screenPosition = Input.mousePosition + positionOffset;
         rectTransform.position = screenPosition;
     }
@@ -40,7 +41,7 @@ public class AddObjectsMenu : MonoBehaviour
     private void InstantiateAtMousePosition(GameObject prefab)
     {
         Vector3 worldPosition = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        worldPosition.z = 0; // Устанавливаем z = 0 для 2D объектов
+        worldPosition.z = 0;
         Instantiate(prefab, worldPosition, Quaternion.identity);
     }
 }

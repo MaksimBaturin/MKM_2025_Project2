@@ -9,6 +9,7 @@ TagManager:
   - Laser
   - Lens
   - LensContainer
+  - UICamera
   layers:
   - Default
   - TransparentFX

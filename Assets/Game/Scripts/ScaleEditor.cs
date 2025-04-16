@@ -22,7 +22,9 @@ public class ScaleEditor : MonoBehaviour
         ScalePrefKey = target.GetInstanceID()+"Scale";
         initialScale = target.GetComponent<ScaleSaver>().initialScale;
         rectTransform = GetComponent<RectTransform>();
-        mainCamera = Camera.main;
+        
+        //mainCamera = Camera.main;
+        mainCamera = GameObject.FindGameObjectWithTag("UICamera").GetComponent<Camera>();
         
         lastScaleFactor = PlayerPrefs.GetFloat(ScalePrefKey, 1f);
         
