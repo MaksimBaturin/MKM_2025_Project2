@@ -67,4 +67,11 @@ public class ScaleEditor : MonoBehaviour
         PlayerPrefs.SetFloat(ScalePrefKey, lastScaleFactor);
         PlayerPrefs.Save();
     }
+
+    public void OnDeleteButtonClick()
+    {
+        Destroy(target);
+        var sel = GameObject.FindFirstObjectByType<SelectObjectBehaviour>();
+        sel.DeleteGui();
+    }
 }

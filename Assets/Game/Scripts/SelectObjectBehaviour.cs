@@ -85,22 +85,27 @@ public class SelectObjectBehaviour : MonoBehaviour
             if (targetCollider == null)
             {
                 target = null;
-                if (currentScaleEditor)
-                {
-                    Destroy(currentScaleEditor.gameObject);
-                    currentScaleEditor = null;
-                }
-                if (currentFocusEditor)
-                {
-                    Destroy(currentFocusEditor.gameObject);
-                    currentFocusEditor = null;
-                }
-                if (currentAddObjectsMenu)
-                {
-                    Destroy(currentAddObjectsMenu.gameObject);
-                    currentAddObjectsMenu = null;
-                }
+                DeleteGui();
             }
         }    
-    }   
+    }
+    
+    public void DeleteGui()
+    {
+        if (currentScaleEditor)
+        {
+            Destroy(currentScaleEditor.gameObject);
+            currentScaleEditor = null;
+        }
+        if (currentFocusEditor)
+        {
+            Destroy(currentFocusEditor.gameObject);
+            currentFocusEditor = null;
+        }
+        if (currentAddObjectsMenu)
+        {
+            Destroy(currentAddObjectsMenu.gameObject);
+            currentAddObjectsMenu = null;
+        }
+    }
 }
