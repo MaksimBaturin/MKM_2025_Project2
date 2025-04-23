@@ -7,7 +7,8 @@ public class Laser : MonoBehaviour
 {
     private List<Vector3> PointList = new List<Vector3>();
     private List<LineRenderer> debugRenderers = new List<LineRenderer>();
-
+    public bool isLineVisible = true;
+    
     [SerializeField] private LineRenderer RayRender;
     [SerializeField] private GameObject StartPoint;
     [SerializeField] private GameObject DebugRendererPrefab; // Префаб с LineRenderer для отладки
@@ -28,7 +29,7 @@ public class Laser : MonoBehaviour
 
     void Update()
     {
-        // Очищаем предыдущие отладочные рендереры
+        
         ClearDebugRenderers();
 
         RayRender.widthMultiplier = 1f;
@@ -57,7 +58,7 @@ public class Laser : MonoBehaviour
         }
         debugRenderers.Clear();
     }
-
+    
     private LineRenderer CreateDebugRenderer(Color color)
     {
         if (DebugRendererPrefab == null)
@@ -69,7 +70,9 @@ public class Laser : MonoBehaviour
             lr.material = new Material(Shader.Find("Sprites/Default"));
             lr.startColor = color;
             lr.endColor = color;
+            lr.enabled = isLineVisible;
             debugRenderers.Add(lr);
+            debugObj.transform.SetParent(this.transform);
             return lr;
         }
         else

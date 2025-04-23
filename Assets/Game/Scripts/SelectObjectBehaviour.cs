@@ -11,10 +11,12 @@ public class SelectObjectBehaviour : MonoBehaviour
     [SerializeField] private ScaleEditor scaleEditorPrefab;
     [SerializeField] private FocusEditor focusEditorPrefab;
     [SerializeField] private AddObjectsMenu addObjectsMenuPrefab;
+    [SerializeField] private LineControl lineControlPrefab;
     
     private ScaleEditor currentScaleEditor; 
     private FocusEditor currentFocusEditor;
     private AddObjectsMenu currentAddObjectsMenu;
+    private LineControl currentLineControl;
 
     void Update()
     {
@@ -48,19 +50,25 @@ public class SelectObjectBehaviour : MonoBehaviour
                 {
                     Destroy(currentFocusEditor.gameObject);
                 }
-                
 
-                if (target.tag != "Player")
+                if (currentLineControl)
                 {
-                    currentScaleEditor = Instantiate(scaleEditorPrefab, UICanvas.transform);
-                    currentScaleEditor.target = target;
+                    Destroy(currentLineControl.gameObject);
                 }
+                
+                currentScaleEditor = Instantiate(scaleEditorPrefab, UICanvas.transform);
+                currentScaleEditor.target = target;
+                
                 
                 switch (target.tag)
                 {
                     case "LensContainer":
                         currentFocusEditor = Instantiate(focusEditorPrefab, UICanvas.transform);
                         currentFocusEditor.target = target;
+                        break;
+                    case "Player":
+                        currentLineControl = Instantiate(lineControlPrefab, UICanvas.transform);
+                        currentLineControl.target = target.GetComponent<Laser>();
                         break;
                 }
             }
@@ -106,6 +114,12 @@ public class SelectObjectBehaviour : MonoBehaviour
         {
             Destroy(currentAddObjectsMenu.gameObject);
             currentAddObjectsMenu = null;
+        }
+
+        if (currentLineControl)
+        {
+            Destroy(currentLineControl.gameObject);
+            currentLineControl = null;
         }
     }
 }

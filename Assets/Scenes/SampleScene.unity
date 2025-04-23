@@ -925,6 +925,7 @@ MonoBehaviour:
   scaleEditorPrefab: {fileID: 3185802257000417921, guid: 7c7ec50c591b7e04a98033d71f32bfbd, type: 3}
   focusEditorPrefab: {fileID: 6677743766738118749, guid: e45def8385dc99642a123ff2f048266c, type: 3}
   addObjectsMenuPrefab: {fileID: 1226367009736586574, guid: 3152473656ce01c41bc11253f75dea8c, type: 3}
+  lineControlPrefab: {fileID: 5093420935773949589, guid: a527d0d0da64069418a81f83a036d456, type: 3}
 --- !u!114 &1858696147
 MonoBehaviour:
   m_ObjectHideFlags: 0
